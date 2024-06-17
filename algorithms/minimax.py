@@ -1,6 +1,10 @@
-from game.player import Player
+# https://www.scirp.org/html/1-9601415_90972.htm
 
-class MinimaxPlayer(Player):
+from game.player import Player
+import random 
+import math
+
+class MinimaxPlayer2(Player):
     def __init__(self, name, piece, depth=5):
         super().__init__(name, piece)
         self.depth = depth
@@ -36,7 +40,7 @@ class MinimaxPlayer(Player):
             return min_eval
 
     def get_move(self, board):
-        best_move = None
+        best_moves = []
         best_value = -float('inf')
         alpha = -float('inf')
         beta = float('inf')
@@ -47,16 +51,32 @@ class MinimaxPlayer(Player):
                 board.board[row][col] = ' '  
                 if value > best_value:
                     best_value = value
-                    best_move = col
+                    best_moves = [col]
+                elif value == best_value:
+                    best_moves.append(col)
                 alpha = max(alpha, value)
-        return best_move
-
+        return random.choice(best_moves)
+    
     def evaluate_board(self, board):
         def score_position(board, piece):
             score = 0
+            
+            # Feature 4: Single chessman in different columns
             center_array = [board.board[row][board.columns//2] for row in range(board.rows)]
             center_count = center_array.count(piece)
-            score += center_count * 2
+            score += center_count * 120  # Center column has higher value
+
+            for col in range(board.columns):
+                for row in range(board.rows):
+                    if board.board[row][col] == piece:
+                        if col in [0, board.columns - 1]:  # Columns a or g
+                            score += 40
+                        elif col in [1, board.columns - 2]:  # Columns b or f
+                            score += 70
+                        elif col in [2, board.columns - 3]:  # Columns c or e
+                            score += 120
+                        else:  # Column d
+                            score += 200
 
             # Score Horizontal
             for row in range(board.rows):
@@ -94,12 +114,36 @@ class MinimaxPlayer(Player):
     def evaluate_window(self, window, piece):
         score = 0
         opponent_piece = 'O' if piece == 'X' else 'X'
+        
         if window.count(piece) == 4:
-            score += 100
+            score += float('inf')  # Feature 1: Absolute win
         elif window.count(piece) == 3 and window.count(' ') == 1:
-            score += 5
+            if self.has_adjacent_space(window):  # Feature 2: Three connected with adjacent space
+                score += float('inf')
+            else:
+                score += 900000
         elif window.count(piece) == 2 and window.count(' ') == 2:
-            score += 2
+            if self.has_adjacent_space(window):  # Feature 3: Two connected with adjacent space
+                score += 50000
+            else:
+                # Assign score based on number of available squares
+                available_squares = window.count(' ')
+                if available_squares == 5:
+                    score += 40000
+                elif available_squares == 4:
+                    score += 30000
+                elif available_squares == 3:
+                    score += 20000
+                elif available_squares == 2:
+                    score += 10000
+
         if window.count(opponent_piece) == 3 and window.count(' ') == 1:
-            score -= 4
+            score -= 900000  # Significant penalty for opponent's three in a row with adjacent space
+        elif window.count(opponent_piece) == 2 and window.count(' ') == 2:
+            score -= 50000  # Penalty for opponent's two in a row with adjacent space
+
         return score
+
+    def has_adjacent_space(self, window):
+        return ' ' in window
+
