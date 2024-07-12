@@ -35,4 +35,4 @@ To improve the algorithm's performance in the early game, I used the first 6 mov
 ## Conclusion
 The MiniMax Algorithm performs well, though it sometimes overlooks immediate winning or losing moves. Despite various adjustments, I couldn't fully resolve this issue. I also implemented a Monte Carlo Tree Search Algorithm, but it didn't perform as well, so I focused on the MiniMax implementation.
 
-You can play against the AI using Pygame by downloading the project and running `pygame_main.py`.
+You can play against the AI on my website or through downloading the project and running `pygame_main.py` (here you can also play against the MCTS ALgorithm).
